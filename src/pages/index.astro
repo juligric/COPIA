@@ -1,0 +1,19 @@
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Dashboard - Libros">
+  <main>
+    <h1>Bienvenido</h1>
+    <p>Cargando...</p>
+  </main>
+</Layout>
+
+<script>
+  import { getSession } from "../lib/auth";
+
+  const session = await getSession();
+  if (!session) {
+    window.location.href = "/login";
+  }
+</script>
