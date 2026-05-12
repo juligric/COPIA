@@ -2,7 +2,6 @@
 interface Props {
   title: string;
 }
-
 const { title } = Astro.props;
 ---
 
@@ -12,8 +11,53 @@ const { title } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: system-ui, sans-serif; background: #f5f5f5; color: #222; }
+      nav {
+        background: #1a1a2e;
+        color: white;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      nav a { color: white; text-decoration: none; font-weight: 600; font-size: 1.1rem; }
+      nav .links { display: flex; gap: 1.5rem; align-items: center; }
+      nav .links a { font-weight: 400; font-size: 0.95rem; opacity: 0.85; }
+      nav .links a:hover { opacity: 1; }
+      button#logout-btn {
+        background: transparent;
+        border: 1px solid rgba(255,255,255,0.4);
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9rem;
+      }
+      button#logout-btn:hover { background: rgba(255,255,255,0.1); }
+      main { max-width: 1100px; margin: 2rem auto; padding: 0 1.5rem; }
+    </style>
   </head>
   <body>
-    <slot />
+    <nav>
+      <a href="/">📚 Dashboard Libros</a>
+      <div class="links">
+        <a href="/">Buscar</a>
+        <a href="/favoritos">Favoritos</a>
+        <button id="logout-btn">Cerrar sesión</button>
+      </div>
+    </nav>
+    <main>
+      <slot />
+    </main>
   </body>
 </html>
+
+<script>
+  import { signOut } from "../lib/auth";
+  document.getElementById("logout-btn")?.addEventListener("click", async () => {
+    await signOut();
+    window.location.href = "/login";
+  });
+</script>
