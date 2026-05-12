@@ -17,20 +17,13 @@ export interface Favorito {
   added_at: string;
 }
 
-// Formato que devuelve Google Books API
-export interface GoogleBook {
-  id: string;
-  volumeInfo: {
-    title: string;
-    authors?: string[];
-    description?: string;
-    categories?: string[];
-    imageLinks?: {
-      thumbnail?: string;
-      smallThumbnail?: string;
-    };
-    publishedDate?: string;
-    pageCount?: number;
-    language?: string;
-  };
+// Formato que devuelve Open Library API
+export interface OpenLibraryBook {
+  key: string;
+  title: string;
+  author_name?: string[];
+  subject?: string[];
+  cover_i?: number;
+  first_publish_year?: number;
+  isbn?: string[];
 }
