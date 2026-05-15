@@ -15,9 +15,81 @@ import Layout from "../layouts/Layout.astro";
 
 <script>
   import { getSession } from "../lib/auth";
+  import { buscarLibros, getCoverUrl } from "../lib/books";
+  import { agregarFavorito } from "../lib/db";
 
+  // 1. Verificar que el usuario esté logueado
   const session = await getSession();
   if (!session) {
     window.location.href = "/login";
   }
+
+  // 2. Agarrar los elementos del HTML
+  const form = document.getElementById("search-form");
+  const results = document.getElementById("results");
+
+  // 3. Escuchar cuando el usuario envía el formulario
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // evita que la página se recargue
+
+    const input = document.getElementById("search-input");
+    const query = input.value;
+
+    results.innerHTML = "<p>Buscando...</p>";
+
+    // 4. Buscar los libros
+    const libros = await buscarLibros(query);
+
+    if (libros.length === 0) {
+      results.innerHTML = "<p>No se encontraron resultados.</p>";
+      return;
+    }
+
+    // 5. Mostrar cada libro
+    results.innerHTML = "";
+
+    for (const libro of libros) {
+      const titulo = libro.title;
+      const autores = libro.author_name ? libro.author_name.join(", ") : "Autor desconocido";
+      const coverUrl = libro.cover_i ? getCoverUrl(libro.cover_i) : "";
+      const bookId = libro.key.replace("/works/", "");
+
+      const tarjeta = document.createElement("div");
+      tarjeta.style.border = "1px solid #ccc";
+      tarjeta.style.padding = "1rem";
+      tarjeta.style.marginBottom = "1rem";
+      tarjeta.style.borderRadius = "8px";
+
+      tarjeta.innerHTML = `
+        ${coverUrl ? `<img src="${coverUrl}" alt="tapa" style="width:80px" />` : "📖"}
+        <h3>${titulo}</h3>
+        <p>${autores}</p>
+        <button class="btn-guardar"
+          data-id="${bookId}"
+          data-titulo="${titulo}"
+          data-autores="${autores}"
+          data-thumbnail="${coverUrl}">
+          Guardar en favoritos
+        </button>
+      `;
+
+      results.appendChild(tarjeta);
+    }
+
+    // 6. Guardar favorito cuando hacen click
+    const botones = document.querySelectorAll(".btn-guardar");
+
+    for (const boton of botones) {
+      boton.addEventListener("click", async () => {
+        await agregarFavorito(session.user.id, {
+          book_id: boton.dataset.id,
+          titulo: boton.dataset.titulo,
+          autores: boton.dataset.autores,
+          thumbnail: boton.dataset.thumbnail,
+        });
+        boton.textContent = "Guardado!";
+      });
+    }
+
+  });
 </script>
