@@ -2,38 +2,146 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Mis favoritos">
-  <section>
-    <h1>Mis favoritos</h1>
-    <div id="favoritos-lista"></div>
-  </section>
+<Layout title="Mis Favoritos">
+
+  <!-- Encabezado cálido -->
+  <div style="margin-bottom: 2.5rem;">
+    <p style="font-size: 0.82rem; color: #b07d5a; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem;">
+      ✦ Mi colección personal
+    </p>
+    <h1 style="font-size: 2rem; font-weight: 800; color: #3d2b1f; margin-bottom: 0.5rem;">
+      Mis libros favoritos 📚
+    </h1>
+    <p style="color: #9a7c6a; font-size: 0.93rem;">
+      Todos los libros que guardaste, listos para cuando quieras leerlos.
+    </p>
+  </div>
+
+  <!-- ACÁ aparecen las tarjetas -->
+  <div id="favoritos-lista"></div>
+
 </Layout>
 
 <style>
-  h1 { margin-bottom: 1.5rem; font-size: 1.6rem; }
-  #favoritos-lista { display: flex; flex-direction: column; gap: 1rem; }
-  .card {
-    display: flex; gap: 1rem;
-    background: white; border-radius: 10px;
-    padding: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  /* Fondo cálido crema */
+  body { background: #fdf8f2 !important; }
+
+  /* Grilla de 4 columnas */
+  #favoritos-lista {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.4rem;
+  }
+
+  /* Tarjeta */
+  .fav-card {
+    background: #fffcf7;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(100, 60, 30, 0.10);
+    border: 1px solid #f0e8dc;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .fav-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(100, 60, 30, 0.15);
+  }
+
+  /* Imagen */
+  .fav-card img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+  }
+
+  /* Sin imagen */
+  .sin-cover {
+    width: 100%;
+    height: 190px;
+    background: linear-gradient(135deg, #f5e6d0, #e8d0b5);
+    display: flex;
     align-items: center;
+    justify-content: center;
+    font-size: 3rem;
   }
-  .cover img { width: 60px; border-radius: 4px; }
-  .no-cover {
-    width: 60px; height: 85px; background: #eee;
-    border-radius: 4px; display: flex;
-    align-items: center; justify-content: center; font-size: 1.5rem;
+
+  /* Info */
+  .fav-info {
+    padding: 1rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
   }
-  .info { flex: 1; }
-  .info h3 { font-size: 1rem; margin-bottom: 0.2rem; }
-  .info .autor { font-size: 0.85rem; color: #666; }
-  .del-btn {
-    background: none; border: 1px solid #ccc;
-    padding: 0.3rem 0.8rem; border-radius: 6px;
-    cursor: pointer; font-size: 0.85rem; color: #999;
+
+  /* Badge terracota */
+  .fav-badge {
+    display: inline-block;
+    background: #fde8d4;
+    color: #b07d5a;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+    width: fit-content;
   }
-  .del-btn:hover { background: #fff3f3; border-color: #e74c3c; color: #e74c3c; }
-  .msg { color: #666; text-align: center; padding: 2rem; }
+
+  .fav-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #3d2b1f;
+    margin-bottom: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .fav-autor {
+    font-size: 0.8rem;
+    color: #9a7c6a;
+    margin-bottom: 1rem;
+    flex: 1;
+  }
+
+  /* Botón quitar */
+  .btn-quitar {
+    width: 100%;
+    background: white;
+    border: 1.5px solid #e8d5c4;
+    border-radius: 8px;
+    padding: 0.5rem;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: #b07d5a;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-quitar:hover {
+    background: #fff0e8;
+    border-color: #c0522a;
+    color: #c0522a;
+  }
+
+  /* Estado vacío */
+  .vacio {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 5rem 2rem;
+    color: #b09a8a;
+  }
+  .vacio-emoji { font-size: 3.5rem; margin-bottom: 1rem; }
+  .vacio h3 { font-size: 1.1rem; color: #6b4c3b; margin-bottom: 0.4rem; }
+  .vacio p  { font-size: 0.88rem; margin-bottom: 1.5rem; }
+  .vacio a {
+    background: #b07d5a;
+    color: white;
+    text-decoration: none;
+    padding: 0.65rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .vacio a:hover { background: #9a6a48; }
 </style>
 
 <script>
@@ -46,33 +154,39 @@ import Layout from "../layouts/Layout.astro";
   const lista = document.getElementById("favoritos-lista")!;
 
   async function cargarFavoritos() {
-    lista.innerHTML = `<p class="msg">Cargando...</p>`;
+    lista.innerHTML = `<p style="grid-column:1/-1; text-align:center; padding:3rem; color:#b09a8a;">Cargando tus libros...</p>`;
     const favs = await getFavoritos(session!.user.id);
 
     if (!favs.length) {
-      lista.innerHTML = `<p class="msg">Todavía no guardaste ningún libro.</p>`;
+      lista.innerHTML = `
+        <div class="vacio">
+          <div class="vacio-emoji">🔍</div>
+          <h3>Tu colección está vacía</h3>
+          <p>Todavía no guardaste ningún libro. ¡Explorá el catálogo y empezá tu lista!</p>
+          <a href="/">Explorar libros</a>
+        </div>
+      `;
       return;
     }
 
     lista.innerHTML = favs.map(fav => `
-      <div class="card" data-id="${fav.id}" data-book="${fav.book_id}">
-        <div class="cover">
-          ${fav.thumbnail
-            ? `<img src="${fav.thumbnail}" alt="Tapa" />`
-            : `<div class="no-cover">📖</div>`}
+      <div class="fav-card">
+        ${fav.thumbnail
+          ? `<img src="${fav.thumbnail}" alt="Tapa de ${fav.titulo}" />`
+          : `<div class="sin-cover">📖</div>`
+        }
+        <div class="fav-info">
+          <span class="fav-badge">Guardado</span>
+          <h3 class="fav-titulo">${fav.titulo}</h3>
+          <p class="fav-autor">${fav.autores ?? "Autor desconocido"}</p>
+          <button class="btn-quitar" data-book="${fav.book_id}">✕ Quitar de favoritos</button>
         </div>
-        <div class="info">
-          <h3>${fav.titulo}</h3>
-          <p class="autor">${fav.autores ?? "Autor desconocido"}</p>
-        </div>
-        <button class="del-btn" data-book="${fav.book_id}">✕ Quitar</button>
       </div>
     `).join("");
 
-    document.querySelectorAll(".del-btn").forEach(btn => {
+    document.querySelectorAll(".btn-quitar").forEach((btn: any) => {
       btn.addEventListener("click", async () => {
-        const bookId = (btn as HTMLElement).dataset.book!;
-        await eliminarFavorito(session!.user.id, bookId);
+        await eliminarFavorito(session!.user.id, btn.dataset.book);
         await cargarFavoritos();
       });
     });

@@ -2,134 +2,187 @@
 import Layout from "../layouts/Layout.astro";
 ---
 
-<Layout title="Buscar libros">
-  <section>
-    <h1>Buscar libros</h1>
-    <form id="search-form">
-      <input type="text" id="search-input" placeholder="Ej: Harry Potter, García Márquez..." required />
-      <button type="submit">Buscar</button>
-    </form>
-    <div id="results"></div>
-  </section>
-</Layout>
+<Layout title="Dashboard Libros">
 
-<style>
-  h1 { margin-bottom: 1.5rem; font-size: 1.6rem; }
-  form { display: flex; gap: 0.5rem; margin-bottom: 2rem; }
-  input {
-    flex: 1; padding: 0.6rem 1rem;
-    border: 1px solid #ccc; border-radius: 8px; font-size: 1rem;
-  }
-  button[type="submit"] {
-    padding: 0.6rem 1.4rem; background: #1a1a2e;
-    color: white; border: none; border-radius: 8px;
-    cursor: pointer; font-size: 1rem;
-  }
-  button[type="submit"]:hover { background: #2d2d5e; }
-  #results { display: flex; flex-direction: column; gap: 1rem; }
-  .msg { color: #666; text-align: center; padding: 2rem; }
-  .card {
-    display: flex; gap: 1rem; background: white;
-    border-radius: 10px; padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-  }
-  .cover img { width: 80px; border-radius: 4px; object-fit: cover; }
-  .no-cover {
-    width: 80px; height: 110px; background: #eee;
-    border-radius: 4px; display: flex;
-    align-items: center; justify-content: center; font-size: 2rem;
-  }
-  .info { flex: 1; }
-  .info h3 { font-size: 1rem; margin-bottom: 0.2rem; }
-  .autor { font-size: 0.85rem; color: #666; margin-bottom: 0.4rem; }
-  .categoria {
-    display: inline-block; background: #e8f0fe; color: #1a73e8;
-    font-size: 0.75rem; padding: 0.1rem 0.5rem;
-    border-radius: 20px; margin-bottom: 0.5rem;
-  }
-  .anio { font-size: 0.8rem; color: #999; margin-bottom: 0.5rem; }
-  .fav-btn {
-    background: none; border: 1px solid #ccc;
-    padding: 0.3rem 0.8rem; border-radius: 6px;
-    cursor: pointer; font-size: 0.85rem;
-  }
-  .fav-btn:hover, .fav-btn.guardado {
-    background: #fff3f3; border-color: #e74c3c; color: #e74c3c;
-  }
-</style>
+  <!-- HERO: título grande y buscador -->
+  <div style="text-align: center; padding: 3rem 1rem 2.5rem;">
+    <h1 style="font-size: 2.4rem; font-weight: 800; margin-bottom: 0.8rem;">
+      Descubre tu próxima lectura
+    </h1>
+    <p style="color: #666; margin-bottom: 2rem; font-size: 1rem;">
+      Explora miles de volúmenes en nuestra base de datos digital curada para investigadores y lectores apasionados.
+    </p>
+
+    <form id="search-form" style="display: flex; gap: 0.5rem; max-width: 600px; margin: 0 auto;">
+      <input
+        type="text"
+        id="search-input"
+        placeholder="Ej: Literatura Clásica, Borges..."
+        required
+        style="flex: 1; padding: 0.85rem 1.2rem; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem; background: white;"
+      />
+      <button
+        type="submit"
+        style="background: #2563eb; color: white; border: none; padding: 0.85rem 1.8rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.95rem; letter-spacing: 0.05em;"
+      >
+        BUSCAR
+      </button>
+    </form>
+  </div>
+
+  <!-- ACÁ aparecen los resultados -->
+  <div id="results"></div>
+
+</Layout>
 
 <script>
   import { getSession } from "../lib/auth";
   import { buscarLibros, getCoverUrl } from "../lib/books";
   import { agregarFavorito } from "../lib/db";
 
+  // Si no está logueado, lo mandamos al login
   const session = await getSession();
-  if (!session) window.location.href = "/login";
+  if (!session) {
+    window.location.href = "/login";
+  }
 
-  const form = document.getElementById("search-form")!;
+  const form    = document.getElementById("search-form")!;
   const results = document.getElementById("results")!;
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const query = (document.getElementById("search-input") as HTMLInputElement).value;
-    results.innerHTML = `<p class="msg">Buscando...</p>`;
 
-    try {
-      const libros = await buscarLibros(query);
-      if (!libros.length) {
-        results.innerHTML = `<p class="msg">No se encontraron resultados.</p>`;
-        return;
-      }
+    const input = document.getElementById("search-input") as HTMLInputElement;
+    const query = input.value;
 
-      results.innerHTML = libros.map(libro => {
-        const autores = libro.author_name?.join(", ") ?? "Autor desconocido";
-        const categoria = libro.subject?.[0] ?? "";
-        const coverUrl = libro.cover_i ? getCoverUrl(libro.cover_i) : "";
-        const bookId = libro.key.replace("/works/", "");
+    results.innerHTML = `<p style="text-align:center; padding:3rem; color:#888;">Buscando...</p>`;
 
-        return `
-          <article class="card">
-            <div class="cover">
-              ${coverUrl
-                ? `<img src="${coverUrl}" alt="Tapa" />`
-                : `<div class="no-cover">📖</div>`}
-            </div>
-            <div class="info">
-              <h3>${libro.title}</h3>
-              <p class="autor">${autores}</p>
-              ${categoria ? `<span class="categoria">${categoria}</span>` : ""}
-              ${libro.first_publish_year ? `<p class="anio">Publicado: ${libro.first_publish_year}</p>` : ""}
-              <button class="fav-btn"
-                data-id="${bookId}"
-                data-titulo="${libro.title.replace(/"/g, '&quot;')}"
-                data-autores="${autores.replace(/"/g, '&quot;')}"
-                data-thumbnail="${coverUrl}">
-                ♡ Guardar en favoritos
-              </button>
-            </div>
-          </article>`;
-      }).join("");
+    const libros = await buscarLibros(query);
 
-      document.querySelectorAll(".fav-btn").forEach(btn => {
-        btn.addEventListener("click", async () => {
-          if (!session) return;
-          const b = btn as HTMLElement;
-          try {
-            await agregarFavorito(session.user.id, {
-              book_id: b.dataset.id!,
-              titulo: b.dataset.titulo!,
-              autores: b.dataset.autores ?? null,
-              thumbnail: b.dataset.thumbnail ?? null,
-            });
-            b.textContent = "♥ Guardado";
-            b.classList.add("guardado");
-          } catch {
-            b.textContent = "Ya está en favoritos";
-          }
-        });
-      });
-    } catch {
-      results.innerHTML = `<p class="msg">Error al buscar libros.</p>`;
+    if (libros.length === 0) {
+      results.innerHTML = `<p style="text-align:center; padding:3rem; color:#888;">No se encontraron resultados.</p>`;
+      return;
     }
+
+    // Título de la sección de resultados
+    results.innerHTML = `
+      <div style="margin-bottom: 1.5rem;">
+        <p style="font-size: 0.8rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.3rem;">
+          Resultados de búsqueda
+        </p>
+        <h2 style="font-size: 1.5rem; font-weight: 700;">${query}</h2>
+      </div>
+      <div id="grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;"></div>
+    `;
+
+    const grid = document.getElementById("grid")!;
+
+    for (const libro of libros) {
+      const titulo   = libro.title;
+      const autores  = libro.author_name ? libro.author_name.join(", ") : "Autor desconocido";
+      const coverUrl = libro.cover_i ? getCoverUrl(libro.cover_i, "L") : "";
+      const bookId   = libro.key.replace("/works/", "");
+      const badge    = libro.subject ? libro.subject[0] : "";
+      const anio     = libro.first_publish_year ? String(libro.first_publish_year) : "";
+
+      // Creamos la tarjeta de cada libro
+      const card = document.createElement("div");
+      card.style.cssText = `
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        display: flex;
+        flex-direction: column;
+      `;
+
+      card.innerHTML = `
+        <!-- Imagen arriba -->
+        <div style="position: relative;">
+          ${coverUrl
+            ? `<img src="${coverUrl}" alt="tapa" style="width:100%; height:220px; object-fit:cover;" />`
+            : `<div style="width:100%; height:220px; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:3rem;">📖</div>`
+          }
+
+          <!-- Badge de categoría (si hay) -->
+          ${badge ? `
+            <span style="
+              position: absolute; top: 10px; left: 10px;
+              background: #dbeafe; color: #1d4ed8;
+              font-size: 0.72rem; padding: 0.2rem 0.6rem;
+              border-radius: 20px; font-weight: 600;
+            ">${badge}</span>
+          ` : ""}
+
+          <!-- Corazón -->
+          <button class="heart-btn" style="
+            position: absolute; top: 10px; right: 10px;
+            background: white; border: none; border-radius: 50%;
+            width: 32px; height: 32px; cursor: pointer;
+            font-size: 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+          ">♡</button>
+        </div>
+
+        <!-- Info debajo de la imagen -->
+        <div style="padding: 1rem; flex: 1; display: flex; flex-direction: column;">
+          <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem;">${titulo}</h3>
+          <p style="font-size: 0.82rem; color: #666; margin-bottom: 0.5rem;">${autores}${anio ? " • " + anio : ""}</p>
+          <p style="font-size: 0.82rem; color: #555; margin-bottom: 1rem; line-height: 1.5; flex: 1;">
+            Obra disponible en nuestro catálogo digital.
+          </p>
+
+          <!-- Botón guardar -->
+          <button class="btn-guardar"
+            data-id="${bookId}"
+            data-titulo="${titulo}"
+            data-autores="${autores}"
+            data-thumbnail="${coverUrl}"
+            style="
+              width: 100%;
+              background: #2563eb;
+              color: white;
+              border: none;
+              padding: 0.65rem;
+              border-radius: 8px;
+              cursor: pointer;
+              font-weight: 600;
+              font-size: 0.9rem;
+            "
+          >
+            Guardar en favoritos
+          </button>
+        </div>
+      `;
+
+      grid.appendChild(card);
+    }
+
+    // Cuando clickean "Guardar en favoritos"
+    document.querySelectorAll(".btn-guardar").forEach((boton: any) => {
+      boton.addEventListener("click", async () => {
+        await agregarFavorito(session!.user.id, {
+          book_id:   boton.dataset.id,
+          titulo:    boton.dataset.titulo,
+          autores:   boton.dataset.autores,
+          thumbnail: boton.dataset.thumbnail,
+        });
+        boton.textContent = "✓ Guardado!";
+        boton.style.background = "#16a34a";
+      });
+    });
+
+    // Cuando clickean el corazón (solo visual)
+    document.querySelectorAll(".heart-btn").forEach((btn: any) => {
+      btn.addEventListener("click", () => {
+        if (btn.textContent === "♡") {
+          btn.textContent = "♥";
+          btn.style.color = "#e74c3c";
+        } else {
+          btn.textContent = "♡";
+          btn.style.color = "";
+        }
+      });
+    });
+
   });
 </script>
